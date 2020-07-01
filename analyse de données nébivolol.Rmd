@@ -1,0 +1,1614 @@
+---
+title: "Rapport analyse données nébivolol"
+author: "Boni Ale"
+date: "05/06/2020"
+output: word_document
+---
+
+```{r}
+#################SELECTION DU WORKING DIRECTORY################
+setwd("C:/Users/lenovo/Desktop/2020 PRESONNAL PROJECTS/Pr. ODJJI/Nevibilol study")
+
+
+#############Chargement de la base de données en format court########
+
+nebi_c1 <- read.csv2("C:/Users/lenovo/Desktop/2020 PRESONNAL PROJECTS/Pr. ODJJI/Nevibilol study/nebi.csv")
+
+head(nebi_c1)
+
+options(digits = 3)
+
+###transformation de la base de données de format court en format long##
+nebi_l <- reshape(data=nebi_c1, idvar="id",
+                         varying = c("sitsbp_0","sitsbp_4", "sitsbp_8", "sitdbp_0","sitdbp_4", "sitdbp_8","fbloodsugar_0", "fbloodsugar_4", "fbloodsugar_8", "tcholesterol_0","tcholesterol_4", "tcholesterol_8", "lcholesterol_0","lcholesterol_4", "lcholesterol_8", "tgd_0", "tgd_4", "tgd_8","hcholesterol_0", "hcholesterol_4", "hcholesterol_8", "dose_0", "dose_4" , "dose_8","erectildysfonction_0","erectildysfonction_4", "erectildysfonction_8","palpitation_0", "palpitation_4", "palpitation_8", "drycough_0", "drycough_4", "drycough_8",  "diziness_0","diziness_4", "diziness_8" , "severeheadaches_0","severeheadaches_4", "severeheadaches_8",  "svdifbreathwhez_0","svdifbreathwhez_4", "svdifbreathwhez_8",  "stopmed_0", "stopmed_4", "stopmed_8", "pedalsweling._0","pedalsweling._4", "pedalsweling._8"), direction="long", sep="_")
+
+head(nebi_l)
+```
+
+```{r}
+####################Analyse descriptive
+################Données socio-demographiques##########
+
+###identification des sujets
+nebi_l$id <- as.numeric(nebi_l$id)
+
+###temps de visite sur site
+
+class(nebi_l$time)
+
+nebi_l$time <- factor(nebi_l$time)
+
+###age
+nebi_l$age <- as.numeric(nebi_l$age)
+
+with(nebi_l, tapply(age, time, summary,na.rm = TRUE))
+
+#####Enlever les sujets qui ne respectent pas les critères d'inclusion dans l'étude####
+##########Age entre 30 et 60 ans maximum#########
+
+nebi<- nebi_l[ which(nebi_l$age
+& nebi_l$age < 60 & nebi_l$age > 30), ]
+
+str(nebi)
+
+nebi_c<- nebi_c1[ which(nebi_c1$age
+& nebi_c1$age < 60 & nebi_c1$age > 30), ]
+
+class(nebi$age)
+
+with(nebi, tapply(age, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(age, time, sd,na.rm = TRUE))
+
+hist(nebi$age)
+
+str(nebi)
+
+head(nebi)
+
+with(nebi,table(id,time))
+
+with(nebi, tapply(id, time, summary,na.rm = TRUE))
+
+###age cat
+
+nebi$age_cat <- ifelse (nebi$age < 45,"0", "1") 
+
+class(nebi$age_cat)
+
+nebi$age_cat <- factor (nebi$age_cat)
+
+with(nebi, table(age_cat, time))
+
+###les sites
+
+class(nebi$site)
+
+nebi$site <- factor(nebi$site)
+
+with(nebi, table(site, time))
+
+###on groupera les sites par région : (1)region sud sud ==5,3,4, (2)region sud est ==2, (3)region nord-central==1
+library(dplyr)
+
+library(car)
+
+###le sexe
+
+nebi$gender <- factor (nebi$gender)
+
+with(nebi, table(gender, time))
+
+with(nebi, table(gender, time, site))
+
+with(nebi, table(gender, site))
+
+library(dplyr)
+
+prop.gender <- with(nebi, table(gender,time)) %>%
+          prop.table(margin = 2)*100
+prop.gender
+
+###le tabagisme
+
+nebi$smoking <- factor (nebi$smoking)
+
+with(nebi, tapply(smoking, time, summary,na.rm =TRUE))
+
+with(nebi, table(smoking, time, site))
+
+###l'indice de masse corporel##classification obesite selon l'oms
+
+
+with(nebi, tapply(bmi, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(bmi, time, sd,na.rm = TRUE))
+
+plot(nebi$bmi)
+boxplot(nebi$bmi)
+
+
+nebi$bmi_cat <- ifelse (nebi$bmi <= 24.9,"0", ifelse(nebi$bmi < 30 & nebi$bmi > 24.9,"1","2"))   
+
+nebi$bmi_cat <- factor(nebi$bmi_cat)
+
+with(nebi, table(bmi_cat,time))
+
+prop.bmi<- with(nebi, table(bmi_cat,time)) %>%
+          prop.table(margin = 2)*100
+prop.bmi
+
+###imc en obèse non obèse
+nebi$bmi_cat_b <- ifelse (nebi$bmi <= 24.9,"0","1")   
+
+class(nebi$bmi_cat_b)
+
+nebi$bmi_cat_b <- factor(nebi$bmi_cat_b)
+
+with(nebi, tapply(bmi_cat_b, time, summary,na.rm = TRUE))
+
+nebi$bmi_cat3 <- ifelse (nebi$bmi < 30,"0","1")   
+
+class(nebi$bmi_cat3)
+
+nebi$bmi_cat3 <- factor(nebi$bmi_cat3)
+
+with(nebi, tapply(bmi_cat3, time, summary,na.rm = TRUE))
+
+
+nebi$bmi_cat <- factor(nebi$bmi_cat)
+
+with(nebi, tapply(bmi_cat, time, summary,na.rm = TRUE))
+
+with(nebi, table(bmi_cat3,time))
+
+prop.bmi<- with(nebi, table(bmi_cat,time)) %>%
+          prop.table(margin = 2)*100
+prop.bmi
+
+
+boxplot(nebi$age, nebi$bmi_cat3)
+```
+
+
+```{r}
+#######################données cliniques
+
+###dose du nebivolol###################
+nebi$dose <- factor (nebi$dose)
+
+with(nebi, tapply(dose, time, summary,na.rm = TRUE))
+
+
+##durée de l'HTN(moins de 5 ans ==0, entre 5 et 10 ====1, plus de 10 ans ====2)
+class(nebi$drt_htn)
+
+nebi$drt_htn <- as.numeric (nebi$drt_htn)
+
+with(nebi, table(drt_htn,time))
+
+with(nebi, table(drt_htn,time)) %>%
+          prop.table(margin = 2)*100
+
+##drt_htn binaire
+
+nebi$drt_htn_b <- ifelse(nebi$drt_htn >= 1 & nebi$drt_htn <=2, "1","0")
+
+nebi$drt_htn_b <- as.factor (nebi$drt_htn_b)
+with(nebi, table(drt_htn_b,time))
+
+######tension arterielle
+
+###systolique
+
+nebi$sitsbp <- as.numeric(nebi$sitsbp)
+
+with(nebi, tapply(sitsbp, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(sitsbp, time, sd,na.rm = TRUE))
+
+plot(nebi$sitsbp)
+
+hist(nebi$sitsbp)
+
+
+
+###diastolique
+
+nebi$sitdbp <- as.numeric(nebi$sitdbp)
+
+with(nebi, tapply(sitdbp, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(sitdbp, time, sd,na.rm = TRUE))
+
+plot(nebi$sitdbp)
+
+hist(nebi$sitdbp)
+
+
+###pression artérielle systolique controlée et non controlée
+
+nebi$sbp_b <- ifelse (nebi$sitsbp < 140 ,"controlled PAS", "uncontrolled PAS")
+
+with(nebi, table(sbp_b,time))
+
+with(nebi, table(sbp_b,time)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(sbp_b,time, site)) %>%
+          prop.table(margin = 2)*100
+
+
+##recodage de la PAS en 0 et 1
+nebi_c1$sbp_b0 <- ifelse (nebi_c1$sitsbp_0 < 140 ,"0", "1")
+
+class(nebi_c1$sbp_b0)
+
+table(nebi_c1$sbp_b0)
+
+
+##recodage sur données courtes
+##recodage de la PAS en 0 et 1
+
+nebi$sbp_r0 <- factor (nebi$sbp_b)
+
+class(nebi$sbp_r)
+
+levels(nebi$sbp_r) <- list("0" = "controlled PAS", "1" = "uncontrolled PAS")
+
+class(nebi$sbp_r)
+
+levels(nebi$sbp_r)
+
+
+
+
+###pression artérielle diastolique controlée et non controlée
+
+nebi$dbp_b <- ifelse (nebi$sitdbp < 90 ,"controlled PAD", "uncontrolled PAD")
+
+with(nebi, table(dbp_b,time))
+
+with(nebi, table(dbp_b,time)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(dbp_b,time, site)) %>%
+          prop.table(margin = 2)*100
+
+
+
+###recodage de PAD en 0 et 1
+class(nebi$dbp_b)
+
+nebi$dbp_r <- factor (nebi$dbp_b)
+
+class(nebi$dbp_r)
+
+levels(nebi$dbp_r) <- list("0" = "controlled PAD", "1" = "uncontrolled PAD")
+
+class(nebi$dbp_r)
+
+levels(nebi$dbp_r)
+
+
+###############calculons le taux de controle de la Pression artérielle
+
+nebi$bp <- ifelse (nebi$sitsbp < 140 & nebi$sitdbp < 90,"controlled bp", "high bp")
+
+with(nebi, table(bp,time))
+
+with(nebi, table(bp,time,site))
+
+with(nebi, table(bp,time))
+
+with(nebi, table(bp,time)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(bp,time, site)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(bp,time)) %>%
+          prop.table(margin = 2)*100
+
+#################courbe de l'evolution de la PA Systolique et diastolique sous forme de spaguetti plot
+
+##systoloique
+
+library(ggplot2)
+nebi$sexe <- factor (nebi$gender)
+
+levels(nebi$sexe) <- list(male="0", female="1")
+
+levels(nebi$sexe)
+
+levels(nebi$gender)
+
+ps <- ggplot(data = nebi, aes(x = time, y = sitsbp, group = id)) + labs(x = "Temps de suivi (semaine)") + labs(y = "PA Systolique (mmHg)")
+
+
+ps + geom_point()
+
+ps + geom_line()
+
+ps + geom_line() + facet_grid(. ~ sexe)
+
+ps + geom_line() + facet_grid(. ~ site)
+
+ps + geom_line() + stat_summary(aes(group = 1), geom = "point", fun.y = mean,
+    shape = 17, size = 3) + facet_grid(. ~ sexe)
+
+ps + geom_line() + stat_smooth(aes(group = 1)) + stat_summary(aes(group = 1),
+    geom = "point", fun.y = mean, shape = 17, size = 3) 
+
+
+ps + geom_line() + stat_smooth(aes(group = 1)) + stat_summary(aes(group = 1),
+    geom = "point", fun.y = mean, shape = 17, size = 3) + facet_grid(. ~ sexe)
+
+ps + geom_line() + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", fun.y = mean, shape = 17, size = 3) 
+
+ps + geom_line() + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", fun.y = mean, shape = 17, size = 3) + facet_grid(. ~ sexe)
+
+
+##diastolique
+pd <- ggplot(data = nebi, aes(x = time, y = sitdbp, group = id)) +  labs(x = "Temps de suivi (semaine)") + labs(y = "PA Diastolique (mmHg)")
+
+pd + geom_point()
+
+pd + geom_line()
+
+pd + geom_line() + facet_grid(. ~ sexe)
+
+pd + geom_line() + stat_summary(aes(group = 1), geom = "point", fun.y = mean,
+    shape = 17, size = 3) + facet_grid(. ~ sexe)
+
+pd + geom_line() + stat_smooth(aes(group = 1)) + stat_summary(aes(group = 1),
+    geom = "point", fun.y = mean, shape = 17, size = 3) 
+
+
+pd + geom_line() + stat_smooth(aes(group = 1)) + stat_summary(aes(group = 1),
+    geom = "point", fun.y = mean, shape = 17, size = 3) + facet_grid(. ~ sexe)
+
+pd + geom_line() + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", fun.y = mean, shape = 17, size = 3) 
+
+pd + geom_line() + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", fun.y = mean, shape = 17, size = 3) + facet_grid(. ~ sexe)
+```
+
+```{r}
+#################Données des examens biologiques################
+
+###glycémie
+
+nebi$fbloodsugar<- as.numeric(nebi$fbloodsugar)
+
+class(nebi$fbloodsugar)
+
+with(nebi, tapply(fbloodsugar, time, summary, na.rm = TRUE))
+
+with(nebi, tapply(fbloodsugar, time, sd, na.rm = TRUE))
+
+
+nebi_c$fbloodsugar_0<- as.numeric(nebi_c$fbloodsugar_0)
+
+nebi_c$fbloodsugar_8<- as.numeric(nebi_c$fbloodsugar_8)
+
+summary(nebi_c$fbloodsugar_0)
+
+summary(nebi_c$fbloodsugar_8)
+
+t.test(nebi_c$fbloodsugar_0, nebi_c$fbloodsugar_8,paired=TRUE, na.action=na.omit)
+
+###cholesterol total
+
+nebi$tcholesterol<- as.numeric(nebi$tcholesterol)
+
+with(nebi, tapply(tcholesterol, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(tcholesterol, time, sd,na.rm = TRUE))
+
+
+nebi_c$tcholesterol_0<- as.numeric(nebi_c$tcholesterol_0)
+
+nebi_c$tcholesterol_8<- as.numeric(nebi_c$tcholesterol_8)
+
+summary(nebi_c$tcholesterol_0)
+
+summary(nebi_c$tcholesterol_8)
+
+t.test(nebi_c$tcholesterol_0, nebi_c$tcholesterol_8,paired=TRUE, na.action=na.omit)
+
+###cholesterol hdl
+
+nebi$hcholesterol<- as.numeric(nebi$hcholesterol)
+
+with(nebi, tapply(hcholesterol, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(hcholesterol, time, sd,na.rm = TRUE))
+
+
+nebi_c$hcholesterol_0<- as.numeric(nebi_c$hcholesterol_0)
+
+nebi_c$hcholesterol_8<- as.numeric(nebi_c$hcholesterol_8)
+
+summary(nebi_c$hcholesterol_0)
+
+summary(nebi_c$hcholesterol_8)
+
+t.test(nebi_c$hcholesterol_0, nebi_c$hcholesterol_8,paired=TRUE, na.action=na.omit)
+
+
+###cholesterol ldl
+
+nebi$lcholesterol<- as.numeric(nebi$lcholesterol)
+
+with(nebi, tapply(lcholesterol, time, summary,na.rm = TRUE))
+
+
+
+with(nebi, tapply(lcholesterol, time, sd,na.rm = TRUE))
+
+plot(nebi$lcholesterol)
+
+nebi_c$lcholesterol_0<- as.numeric(nebi_c$lcholesterol_0)
+
+nebi_c$lcholesterol_8<- as.numeric(nebi_c$lcholesterol_8)
+
+summary(nebi_c$lcholesterol_0)
+
+summary(nebi_c$lcholesterol_8)
+
+t.test(nebi_c$lcholesterol_0, nebi_c$lcholesterol_8,paired=TRUE, na.action=na.omit)
+
+
+###triglycerides
+nebi$tgd <- as.numeric(nebi$tgd)
+
+with(nebi, tapply(tgd, time, summary,na.rm = TRUE))
+
+with(nebi, tapply(tgd, time, sd,na.rm = TRUE))
+
+
+
+nebi_c$tgd_0<- as.numeric(nebi_c$tgd_0)
+
+nebi_c$tgd_8<- as.numeric(nebi_c$tgd_8)
+
+summary(nebi_c$tgd_0)
+
+summary(nebi_c$tgd_8)
+
+t.test(nebi_c$tgd_0, nebi_c$tgd_8,paired=TRUE, na.action=na.omit)
+```
+
+```{r}
+###evenements indesirables sans imputations de données 
+
+###dysfonction erectile##4 patients
+
+class (nebi$erectildysfonction)
+
+nebi$erectildysfonction <- factor (nebi$erectildysfonction)
+
+with(nebi, table(erectildysfonction,time))
+
+with(nebi, table(erectildysfonction,time)) %>%
+          prop.table(margin = 2)*100
+
+erec <- prop.test(x = c(2, 2), n = c(95, 78))
+erec
+
+tab_erec <- matrix(c(2,93, 2, 76), nc=2, byrow = TRUE)
+
+tab_erec
+
+erec_1 <-  mcnemar.test(tab_erec, correct=TRUE)
+
+erec_1
+
+mcnemar.exact(tab_erec)
+   
+###palpitation##6 patients
+
+class(nebi$palpitation)
+
+nebi$palpitation <- factor (nebi$palpitation)
+
+with(nebi, table(palpitation,time))
+
+with(nebi, table(palpitation,time,site))
+
+palp <- prop.test(x = c(2, 2), n = c(95, 78))
+palp
+
+###toux sèche##2 patients
+
+class(nebi$drycough)
+
+nebi$drycough <- factor (nebi$drycough)
+
+with(nebi, table(drycough,time))
+
+with(nebi, table(drycough,time,site))
+
+###vertiges###7 patients
+
+class(nebi$diziness)
+
+nebi$diziness <- factor (nebi$diziness)
+
+with(nebi, table(diziness,time))
+
+with(nebi, table(diziness,time,site))
+
+
+###cephalées atroces
+
+class(nebi$severeheadaches)
+
+nebi$severeheadaches <- factor (nebi$severeheadaches)
+
+with(nebi, table(severeheadaches,time))
+
+with(nebi, table(severeheadaches,time,site))
+
+
+###difficultés a respirer et sifflement
+
+class(nebi$svdifbreathwhez)
+
+nebi$svdifbreathwhez <- factor (nebi$svdifbreathwhez)
+
+with(nebi, table(svdifbreathwhez,time))
+
+with(nebi, table(svdifbreathwhez,time,site))
+
+###gonflement des membres inferieurs
+
+class(nebi$pedalsweling.)
+
+nebi$pedalsweling. <- factor (nebi$pedalsweling.)
+
+with(nebi, table(pedalsweling.,time))
+
+with(nebi, table(pedalsweling.,time,site))
+```
+
+
+
+```{r}
+###étendue des données manquantes
+library(tidyverse)
+
+missing.values <- nebi_c %>%
+  gather(key = "key", value = "val") %>%
+  mutate(isna = is.na(val)) %>%
+  group_by(key) %>%
+  mutate(total = n()) %>%
+  group_by(key, total, isna) %>%
+  summarise(num.isna = n()) %>%
+  mutate(pct = num.isna / total * 100)
+
+
+levels <-
+    (missing.values  %>% filter(isna == T) %>% arrange(desc(pct)))$key
+
+percentage.plot <- missing.values %>%
+      ggplot() +
+        geom_bar(aes(x = reorder(key, desc(pct)), 
+                     y = pct, fill=isna), 
+                 stat = 'identity', alpha=0.8) +
+      scale_x_discrete(limits = levels) +
+      scale_fill_manual(name = "", 
+                        values = c('steelblue', 'tomato3'), labels = c("Observations présentes", "Observations manquantes")) +
+      coord_flip() +
+      labs(title = " ", x =
+             'Variable', y = "% de données manquantes")
+
+percentage.plot
+
+###transformons les variables en fonction des données manquantes afin de construire des modèles logistiques
+
+##utilisons l'age
+
+with(nebi, table(is.na(nebi$bmi)))
+
+nebi$bmi_miss <- ifelse(is.na(nebi$bmi),"1", "0")
+
+with(nebi, table(nebi$bmi_miss))
+
+##pression artérielle systolique 
+
+###vérifions l'hypothèse de MCAR
+nebi$bmi_miss <- factor(nebi$bmi_miss)
+
+class(nebi$bmi_miss)
+
+missing_meca <- glm(bmi_miss~age + smoking + gender, family=binomial,data=nebi)
+
+summary(missing_meca)##le genre et l'âge est donc lié au données manquantes de l'IMC
+
+###
+with(nebi, table(nebi$bmi_miss,gender))
+
+##### 	Barnard, J. and Meng, X.-L. (1999) Applications of Multiple Imputation in Medical Studies: From AIDS to NHANES. Statistical Methods in Medical Research, 8, 17-36. https://doi.org/10.1177/096228029900800103
+##on ne peut donc pas faire une GEE dans ce cas  
+  
+
+```
+
+
+
+```{r}
+##########################ANALYSE BIVARIEE DE LA PAS SANS IMPUTATION#####
+
+##trouvons la variable idéale 
+##chargeons le package lme4
+library(lme4)
+
+library(lmerTest)
+
+nebi$time <- factor(nebi$time)
+
+class(nebi$id)
+
+nebi$id <- factor(nebi$id)
+
+
+##mdèle nul
+#fixe
+fixed_time_0 <- lm(sitsbp ~ 1, data=nebi)
+
+summary(fixed_time_0)
+
+
+#mixte à la recherche de l'effet aléatoire significatif
+
+
+##au niveau du site
+modelfits_1_0 <- lmer(sitsbp ~ 1 +(1 | site), nebi, REML= TRUE)
+
+performance::model_performance(modelfits_1_0)
+
+###comparons le modèle nul et le model avec chaque effet aléatoire 
+null.site = -2 * logLik(fixed_time_0) + 2 * logLik(modelfits_1_0)
+
+pchisq(as.numeric(null.site), df=1, lower.tail=F)##non significatif
+
+
+##au niveau des sujets
+modelfits_2_0 <- lmer(sitsbp ~ 1 +(1 | id), nebi, REML= TRUE)
+
+summary(modelfits_2_0)
+
+##comparaison
+null.id = -2 * logLik(fixed_time_0) + 2 * logLik(modelfits_2_0)
+
+pchisq(as.numeric(null.id), df=1, lower.tail=F)
+
+
+##avec le temps
+modelfits_3_0 <- lmer(sitsbp ~ 1 +(1 | time), nebi, REML= TRUE)
+
+summary(modelfits_3_0)
+
+
+null.time = -2 * logLik(fixed_time_0) + 2 * logLik(modelfits_3_0)
+
+pchisq(as.numeric(null.time), df=1, lower.tail=F)
+
+##avec les individus au niveau des individus et du temps
+modelfits_4_0 <- lmer(sitsbp ~ 1 +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(modelfits_4_0)
+
+##comparaison avec le modèle nul
+null.t_id = -2 * logLik(fixed_time_0) + 2 * logLik(modelfits_4_0)
+
+pchisq(as.numeric(null.t_id), df=1, lower.tail=F)
+
+##comparaison avec le model 2 
+null.t_s_id1 = -2 * logLik(modelfits_2_0) + 2 * logLik(modelfits_4_0)
+
+pchisq(as.numeric(null.t_s_id1), df=1, lower.tail=F)
+
+##comparaison avec le model3 
+null.t_s_id2 = -2 * logLik(modelfits_3_0) + 2 * logLik(modelfits_4_0)
+
+pchisq(as.numeric(null.t_s_id2), df=1, lower.tail=F)
+
+
+##analyse bivarié avec seuil de significativité à 0.15
+
+##age catégorie plus de 45 ans et moins de 45
+msb_1 <- lmer(sitsbp ~ age_cat +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_1)
+
+confint(msb_1)
+
+parameters::p_value(msb_1)##significatif
+
+library(effects)
+
+confint(msb_1)
+
+##bmi_cat
+
+msb_2 <- lmer(sitsbp ~ bmi_cat +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_2)
+
+confint(msb_2)
+
+parameters::p_value(msb_2)##non significatif
+
+##gender
+
+msb_3 <- lmer(sitsbp ~ gender +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_3)
+
+confint(msb_3)
+
+parameters::p_value(msb_3)##significatif
+
+
+##smoking
+msb_4 <- lmer(sitsbp ~ smoking +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_4)## non significatif
+
+confint(msb_4)
+
+##durée de l' hta
+msb_5 <- lmer(sitsbp ~ drt_htn_b +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_5)##non significatif
+
+
+##taux de glycémie à jeun
+msb_5 <- lmer(sitsbp ~ fbloodsugar +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_5)##non significatif
+
+confint(msb_5)
+##cholest total
+
+msb_6 <- lmer(sitsbp ~ tcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_6)
+
+confint(msb_6)
+
+parameters::p_value(msb_6)##non significatif
+
+##hdl
+msb_7 <- lmer(sitsbp ~ hcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_7)
+
+confint(msb_7)
+
+parameters::p_value(msb_7)##non significatif
+
+
+##ldl
+msb_8 <- lmer(sitsbp ~ lcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_8)
+
+confint(msb_8)
+
+parameters::p_value(msb_8)##non significatif
+
+##tgd
+msb_9 <- lmer(sitsbp ~ tgd +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_9)
+
+confint(msb_9)
+
+parameters::p_value(msb_9)##non significatif
+```
+
+
+
+```{r}
+##########################ANALYSE BIVARIEE PAD SANS IMPUTATION#####
+
+##trouvons la variable idéale 
+##chargeons le package lme4
+library(lme4)
+
+library(lmerTest)
+
+nebi$time <- factor(nebi$time)
+
+class(nebi$id)
+
+nebi$id <- factor(nebi$id)
+
+
+##mdèle nul
+#fixe
+fixed_time_0d <- lm(sitdbp ~ 1, data=nebi)
+
+summary(fixed_time_0d)
+
+
+#mixte à la recherche de l'effet aléatoire significatif
+
+
+##au niveau du site
+modelfits_1_0d <- lmer(sitdbp ~ 1 +(1 | site), nebi, REML= TRUE)
+
+summary(modelfits_1_0d)
+
+performance::model_performance(modelfits_1_0d)
+
+###comparons le modèle nul et le model avec chaque effet aléatoire 
+null.sited = -2 * logLik(fixed_time_0d) + 2 * logLik(modelfits_1_0d)
+
+pchisq(as.numeric(null.sited), df=1, lower.tail=F)##non significatif
+
+##au niveau des sujets
+modelfits_2_0d <- lmer(sitdbp ~ 1 +(1 | id), nebi, REML= TRUE)
+
+summary(modelfits_2_0d)
+
+##comparaison
+null.idd = -2 * logLik(fixed_time_0d) + 2 * logLik(modelfits_2_0d)
+
+pchisq(as.numeric(null.idd), df=1, lower.tail=F)##significatif
+
+##avec le temps
+modelfits_3_0d <- lmer(sitdbp ~ 1 +(1 | time), nebi, REML= TRUE)
+
+summary(modelfits_3_0d)
+
+
+null.timed = -2 * logLik(fixed_time_0d) + 2 * logLik(modelfits_3_0d)
+
+pchisq(as.numeric(null.timed), df=1, lower.tail=F)
+
+##avec les individus au niveau des individus et le temps
+modelfits_4_0d <- lmer(sitdbp ~ 1 +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(modelfits_4_0d)
+
+##comparaison avec le modèle nul
+null.t_s_idd = -2 * logLik(fixed_time_0d) + 2 * logLik(modelfits_4_0d)
+
+pchisq(as.numeric(null.t_s_idd), df=1, lower.tail=F)
+
+##comparaison avec le model 2 
+null.t_s_id1d = -2 * logLik(modelfits_2_0d) + 2 * logLik(modelfits_4_0d)
+
+pchisq(as.numeric(null.t_s_id1d), df=1, lower.tail=F)
+
+##comparaison avec le model3 
+null.t_s_id2d = -2 * logLik(modelfits_3_0d) + 2 * logLik(modelfits_4_0d)
+
+pchisq(as.numeric(null.t_s_id2d), df=1, lower.tail=F)
+
+
+##analyse bivarié avec seuil de significance à 0.30
+
+##age catégorie plus de 45 ans et moins de 45
+msb_1d <- lmer(sitdbp ~ age_cat +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_1d)
+
+confint(msb_1d)
+
+parameters::p_value(msb_1d)##non significatif
+
+##bmi_cat
+
+msb_2d <- lmer(sitdbp ~ bmi_cat +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_2d)##non significatif
+
+confint(msb_2d)
+##gender
+
+msb_3d <- lmer(sitdbp ~ gender +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_3d)##non significatif
+
+confint(msb_3d)
+
+##smoking
+msb_4d <- lmer(sitdbp ~ smoking +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_4d)##non significatif
+
+confint(msb_4d)
+
+##durée de l'hypertension artérielle
+msb_5d <- lmer(sitdbp ~ drt_htn_b +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_5d)##non significatif
+
+##taux de glycémie à jeun
+msb_5d <- lmer(sitdbp ~ fbloodsugar +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_5d)##non significatif
+
+confint(msb_5d)
+##cholest total
+
+msb_6d <- lmer(sitdbp ~ tcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_6d)
+confint(msb_6d)
+parameters::p_value(msb_6d)##non significatif
+
+##hdl
+msb_7d <- lmer(sitdbp ~ hcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_7d)
+confint(msb_7d)
+parameters::p_value(msb_7d)##non significatif
+
+
+##ldl
+msb_8d <- lmer(sitdbp ~ lcholesterol +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_8d)
+confint(msb_8d)
+parameters::p_value(msb_8d)##non significatif
+
+##tgd
+msb_9d <- lmer(sitdbp ~ tgd +(1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(msb_9d)##non significatif
+
+confint(msb_9d)
+
+```
+
+
+
+```{r}
+########Modélisation sans imputation de la PAS avec Modèle linéaire Mixte
+
+##Based on a recent systematic review of HTA risk factors in Nigeria, age, gender and bmi are independent risk factors of HTA. Thus we will include them in the model. (Bosu WK, Reilly ST, Aheto JMK, Zucchelli E (2019) Hypertension in older adults in Africa: A systematic review and meta-analysis. PLoS ONE 14(4): e0214934. https://doi.org/10.1371/journal. pone.0214934)
+####and a national representative survey : Murthy, G. V. S., Fox, S., Sivasubramaniam, S., Gilbert, C. E., Mahdi, A. M., Imam, A. U., ... Nigeria National Blindness and Visual Impairment study group (2013). Prevalence and risk factors for hypertension and association with ethnicity in Nigeria: results from a national survey. Cardiovascular Journal of Africa, 24(9-10), 344-50. https://doi.org/10.5830/CVJA-2013-058
+
+##and also variable with p-value less than 0.10 parceque la règle de seuil de 0.05 est connu pour faire perdre d'inclure des variables interressante dans le modèle finale:  Bendel RB, Afifi AA. Comparison of stopping rules in forward regression. Journal of the American Statistical Association. 1977;72:46–53. doi: 10.2307/2286904. [CrossRef] [Google Scholar]
+##Mickey J, Greenland S. A study of the impact of confounder-selection criteria on effect estimation. American Journal of Epidemiology. 1989;129:125–137. [PubMed] [Google Scholar]
+
+##modèle complet et utilison la méthode backward pour enlever chaque variable non significatif du modèle complet
+mps1 <- lmer(sitsbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat+ gender*bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mps1)
+
+cAIC(mps1)
+
+##enlevons l'interraction genre et age vu qu'ils sont non significatif
+
+mps2 <- lmer(sitsbp ~ age_cat + gender + bmi_cat + age_cat * bmi_cat+ gender*bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mps2)
+
+cAIC(mps2)
+##comparons les deux modèles:
+
+mls = -2 * logLik(mps1) + 2 * logLik(mps2)
+
+pchisq(as.numeric(mls), df=1, lower.tail=F)
+
+performance::model_performance(mps1)
+
+performance::model_performance(mps2)
+
+
+##model final
+mps <- lmer(sitsbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat+ gender*bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mps)
+
+confint(mps)
+
+performance::model_performance(mps)
+
+library(cAIC4)
+
+cAIC(mps)
+
+##visulaisons le modèle
+library(effects)
+
+es <- allEffects(mps)
+
+print(es)
+
+plot(es)
+
+plot(es,multiline=TRUE,confint=TRUE,ci.style="bars"
+     ,main="Effet"
+     ,xlab=" "
+     ,ylab=" ")
+
+
+##post hoc
+library(emmeans)
+
+emmip(mps, age_cat ~ gender)
+
+emmeans(mps, pairwise ~ age_cat : gender)
+
+
+emmip(mps, bmi_cat  ~ gender)
+
+emmeans(mps, pairwise ~ bmi_cat : gender)
+
+
+emmip(mps, bmi_cat  ~ age_cat)
+
+emmeans(mps, pairwise ~ bmi_cat : age_cat)
+
+#####Interpretation:
+
+##l'âge et l'indice de masse corporelle sont des facteurs liés à l'évolution de la pression artérielle systolique (PAS) mais il existe une interraction significative entre leur effet sur la PAS. Le genre n'est pas associé à la PAS.
+##l'âge: Toute chose égale par ailleurs,la différence moyenne de la pression artérielle d'un sujet agé de plus de 45 ans  sous nébivolol est de 7 mmHg +/- 3 plus élevé  par rapport à un sujet de moins de 45 ans au cours d'un suivie de 2 mois. 
+
+##Toute chose égale par ailleurs,la différence moyenne de la pression artérielle systolique d'un sujet obèses sous nébivolol est de 14 mmHg +/- 4 plus élevé qu'un sujet avec un imc normal 
+##le modèle en général a un pouvoir explicatif de 54% c'est à dire qu'il explque en globale 54% de ce qui se passe dans les données réels de la PAS dont seulement 10% pour les effets fixes. Cela veut dire que le modèle peut prédire 54% des données de la PAS avec précision. 
+
+### le Coefficient de Corrélation Intra-classe (CCI) ou Intraclass correlation (ICC) en anglais: C'est la part de variance d'une observation due à une variabilité entre les sujets dans les résultats réels. Ses valeurs sont communément comprises entre 0 et 1. Ici on a 0.49. Ce qui veut dire ces données explique 49% de la variabilité entre les sujets c'est à dire l’accord entre plusieurs évaluateurs sur la mesure de la PAS. Si cette valeur est proche de 1, elle indique qu'il y a une grande similutude entre les mesures de PAS des sujets du même groupe. 
+
+
+###vérification des hypothèses:
+
+##hypothèse de linéarité
+plot(fitted(mps), resid(mps,type="pearson")) ###the plot
+abline(0,0, col="red")##les points semble être bien dispersé ce qui montre une linéarité
+
+##hypothèse d'homoscédasticité:homogénité des variance
+
+plot(mps)###les données semble êtres dispersée autour d'une ligne centrale  
+
+##le résiduel du model est normalement distribué
+
+require("lattice")
+qqmath(mps, id=0.05) 
+qqnorm(resid(mps))
+qqline(resid (mps),col = "red")
+
+
+
+```
+
+
+
+```{r}
+###MODELISATION DE LA PAD SANS IMPUTATION AVEC MODEL LINEAIRE MIXTE
+##modèle complet
+mpd1 <- lmer(sitdbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat + gender * bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mpd1)
+
+##enlevons age * bmi et age * gender
+
+mpd2 <- lmer(sitdbp ~ age_cat + gender + bmi_cat + gender * bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mpd2)
+
+
+##comparons les deux modèles:
+AIC(mpd1, mpd2)
+
+mld = -2 * logLik(mpd1) + 2 * logLik(mpd2)
+
+pchisq(as.numeric(mld), df=1, lower.tail=F)
+
+performance::model_performance(mpd1)
+
+performance::model_performance(mpd2)
+
+###ceci montre que le modèle 2 est moins interessant que le modèle 1
+
+###le modèle finale est donc: 
+
+mpd <- lmer(sitdbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat + gender * bmi_cat +  (1 | id) + (1|time), nebi, REML= TRUE)
+
+summary(mpd)
+
+library(effects)
+
+confint(mpd)
+
+performance::model_performance(mpd)
+
+
+#####Interpretation:
+##Contrairement à la PAS, le genre est le seul facteur liés à l'évolution de la pression artérielle diastolique (PAS) mais il existe une interraction significative entre son effet sur la PAS et l'age de plus de 45ans.
+
+##le genre: Toute chose égale par ailleurs,la différence moyenne de la PAD d'une femme sous nébivolol est de 6 mmHg +/- 3 plus élevé par rapport à un homme au cours d'un suivi de 2 mois.
+
+##le modèle en général a un pouvoir explicatif de 54% c'est à dire qu'il explque en globale 54% de la variance de la PAS dont seulement 10% pour les effets fixes.
+
+### le Coefficient de Corrélation Intra-classe (CCI) ou Intraclass correlation (ICC) en anglais: C'est la part de variance d'une observation due à une variabilité entre les sujets dans les résultats réels. Ses valeurs sont communément comprises entre 0 et 1. Ici on a 0.53. Ce qui veut dire ces données explique 53% de la variabilité entre les sujets c'est à dire l’accord entre plusieurs évaluateurs sur la mesure de la PAD. Si cette valeur est proche de 1, elle indique qu'il y a une grande similutude entre les mesures de PAD des sujets du même groupe. 
+
+##Root Mean Square Error (RMSE) 
+
+
+##hypothèse de linéarité
+plot(fitted(mpd), resid(mpd,type="pearson")) ###the plot
+abline(0,0, col="red")##les points semble être bien dispersé ce qui montre une linéarité
+
+##hypothèse d'homoscédasticité:homogénité des variance
+
+plot(mpd)###les données semble êtres dispersée autour d'une ligne centrale  
+
+##le résiduel du model est normalement distribué
+
+require("lattice")
+qqmath(mpd, id=0.05) 
+qqnorm(resid(mpd))
+qqline(resid (mpd),col = "red")
+
+
+
+```
+
+
+```{r}
+library(sjstats)
+library(lmerTest)
+library(tidyverse)
+library(car)
+library(psycho)
+library(sjPlot)
+library(sjlabelled)
+library(sjmisc)
+library(ggplot2)
+theme_set(theme_sjplot())
+
+##forest_sbp= plot_model(msbp2, show.values = TRUE, value.offset = .3, vline.color = "black", axis.labels = "", title = "",sort.est = TRUE)
+
+
+plot_model(mps,  vline.color = "black", axis.labels = "", title = "",sort.est = TRUE)
+
+forest_sbp= plot_model(mps, show.values = TRUE, value.offset = .3, vline.color = "black", axis.labels = "", title = "",sort.est = TRUE)
+forest_sbp
+
+####################DBP
+
+plot_model(mpd,  vline.color = "black", axis.labels = "", title = "",sort.est = TRUE)
+
+forest_dbp= plot_model(mpd, show.values = TRUE, value.offset = .3, vline.color = "black", axis.labels = "", title = "",sort.est = TRUE)
+forest_dbp
+```
+
+
+```{r}
+#comparaison de la tension arterielle à la visite semaine 0, semaine 4, semaine 8
+
+####Pression arterielle systolique
+
+class(nebi_c$sitsbp_0)
+
+nebi_c$sitsbp_0 <- as.numeric(nebi_c$sitsbp_0)
+
+class(nebi_c$sitsbp_4)
+
+nebi_c$sitsbp_4 <- as.numeric(nebi_c$sitsbp_4)
+
+class(nebi_c$sitsbp_8)
+
+nebi_c$sitsbp_8 <- as.numeric(nebi_c$sitsbp_8)
+
+
+t.test(nebi_c$sitsbp_0, nebi_c$sitsbp_4,paired=TRUE,na.action=na.omit)
+
+
+t.test(nebi_c$sitsbp_0, nebi_c$sitsbp_8,paired=TRUE,na.action=na.omit)
+
+
+t.test(nebi_c$sitsbp_4, nebi_c$sitsbp_8,paired=TRUE,na.action=na.omit)
+
+###vérification de l'hypothèse de normalité
+
+hist(nebi_c$sitsbp_0)
+
+hist(nebi_c$sitsbp_4)
+
+hist(nebi_c$sitsbp_8)
+
+qqnorm(nebi_c$sitsbp_0)
+qqline(nebi_c$sitsbp_0)
+
+qqnorm(nebi_c$sitsbp_4)
+qqline(nebi_c$sitsbp_4)
+
+qqnorm(nebi_c$sitsbp_8)
+qqline(nebi_c$sitsbp_8)
+
+
+
+####Pression arterielle diastolique
+t.test(nebi_c$sitdbp_0, nebi_c$sitdbp_4,paired=TRUE, na.action=na.omit)
+
+t.test(nebi_c$sitdbp_0, nebi_c$sitdbp_8,paired=TRUE, na.action=na.omit)
+
+t.test(nebi_c$sitdbp_4, nebi_c$sitdbp_8,paired=TRUE, na.action=na.omit)
+
+##vérification de l'hypothèse de normalité 
+hist(nebi_c$sitdbp_0)
+
+hist(nebi_c$sitdbp_4)
+
+hist(nebi_c$sitdbp_8)
+
+qqnorm(nebi_c$sitdbp_0)
+qqline(nebi_c$sitdbp_0)
+
+qqnorm(nebi_c$sitdbp_4)
+qqline(nebi_c$sitdbp_4)
+
+qqnorm(nebi_c$sitdbp_8)
+qqline(nebi_c$sitdbp_8)
+
+
+#####comparaison graphique de la différence moyenne de la pression arterielle systolique et diastolique a chaque visite par rapport à la visite 0
+
+library(ggplot2)
+
+df <- data.frame(PA = rep(c("Diff. PA Systolique", "Diff. PA Diastolique"), each=2), 
+                 Time = rep(c("4", "8"),2),
+                 Diff.BP = c(-7.55, -11.12, -6.56, -8.03))
+
+head(df)
+
+bp_plot = ggplot(data=df, aes(x= reorder(Time,-Diff.BP),Diff.BP, fill=PA)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Diff.BP), vjust=1.6, color="black",
+            position = position_dodge(0.9), size=3.5)+
+  scale_fill_brewer(palette="Paired")+ 
+  theme_minimal()
+print(bp_plot + labs(y="Difference moyenne de la PA (mmHg)", x = "Temps de suivi (semaine)"))
+
+###############calculons le taux de controle de la Pression artérielle
+
+nebi$bp <- ifelse (nebi$sitsbp < 140 & nebi$sitdbp < 90,"controlled bp", "high bp")
+
+with(nebi, table(bp,time))
+
+with(nebi, table(bp,time,site))
+
+with(nebi, table(bp,time))
+
+with(nebi, table(bp,time)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(bp,time, site)) %>%
+          prop.table(margin = 2)*100
+
+with(nebi, table(bp,time)) %>%
+          prop.table(margin = 2)*100
+###comparons la proportion de pression artérielle normale et élevée
+
+res1 <- prop.test(x = c(52, 75), n = c(127, 127))
+res1
+
+res2 <- prop.test(x = c(53, 62), n = c(115, 115))
+res2
+
+res3 <- prop.test(x = c(52, 53), n = c(127, 115))
+res3
+```
+
+
+```{r}
+######################PROCESSUS D'IMPUTAION##################
+
+###########Evaluation des données manquantes
+library(mice)
+
+############Profile des données manquantes
+pnebi_missing <- unlist(lapply(nebi_c, function(x) sum(is.na(x))))/nrow(nebi)
+sort(pnebi_missing[pnebi_missing > 0], decreasing = TRUE)
+
+
+###tableau avec les données manquantes avec données format court
+library(tidyverse)
+
+missing.values <- nebi_c %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is.missing = is.na(val)) %>%
+    group_by(key, is.missing) %>%
+    summarise(num.missing = n()) %>%
+    filter(is.missing==T) %>%
+    select(-is.missing) %>%
+    arrange(desc(num.missing)) 
+
+missing.values
+
+
+###visualisation des données manquantes
+
+
+missing.values <- nebi_c %>%
+  gather(key = "key", value = "val") %>%
+  mutate(isna = is.na(val)) %>%
+  group_by(key) %>%
+  mutate(total = n()) %>%
+  group_by(key, total, isna) %>%
+  summarise(num.isna = n()) %>%
+  mutate(pct = num.isna / total * 100)
+
+
+levels <-
+    (missing.values  %>% filter(isna == T) %>% arrange(desc(pct)))$key
+
+percentage.plot <- missing.values %>%
+      ggplot() +
+        geom_bar(aes(x = reorder(key, desc(pct)), 
+                     y = pct, fill=isna), 
+                 stat = 'identity', alpha=0.8) +
+      scale_x_discrete(limits = levels) +
+      scale_fill_manual(name = "", 
+                        values = c('steelblue', 'tomato3'), labels = c("Observations présentes", "Observations manquantes")) +
+      coord_flip() +
+      labs(title = " ", x =
+             'Variable', y = "% de données manquantes")
+
+percentage.plot
+
+md.pattern(nebi_c)
+
+p <- md.pairs(nebi_c)
+p
+
+##both Yj and Yk are observed (pattern rr)
+##Yj is observed and Yk is missing (pattern rm)
+##Yj is missing and Yk is observed (pattern mr)
+##both Yj and Yk are missing (pattern mm)
+
+p$mr/(p$mr + p$mm)
+
+ p$rm/(p$rm + p$rr)
+ 
+ 
+###The influx and outflux measures are useful to sift out variables that cannot contribute to the imputations
+inandoutflux <- flux(nebi_c)
+
+inandoutflux
+
+fluxplot(nebi_c)
+
+###It is often (but not always) true that Ij + Oj ≤ 1, so in practice variables closer to the subdiagonal are typically better connected than those farther away. The fluxplot can be used to spot variables that clutter the imputation model. Variables that are located in the lower regions (especially near the lower-left corner) and that are uninteresting for later analysis are better removed from the data prior to imputation.
+
+
+# exclusion des variables qui pourraient poser des problèmes lors du processus d'imputation si données manquantes de plus de 25 pour cent et en plus des données qui ne sont pas utilisées comme covariates dans la modélisation de la PA
+
+library(dplyr)
+
+
+nebi_r <- nebi %>% 
+  dplyr::select( -tgd,  - fbloodsugar , - lcholesterol  , - hcholesterol  ,- tcholesterol, -sbp_b, -dbp_b, -dose, -stopmed,-bmi_cat3,-bmi_cat_b,-sbp_r0, -dbp_r,-sbp_r , -bp, -sexe, -bmi_miss, - drt_htn, -drt_htn_b, -palpitation,-drycough,-erectildysfonction,-pedalsweling.,-svdifbreathwhez, -diziness,-severeheadaches)
+
+pnebi_missing_r <- unlist(lapply(nebi_r, function(x) sum(is.na(x))))/nrow(nebi_r)
+sort(pnebi_missing_r[pnebi_missing_r > 0], decreasing = TRUE)
+
+
+#######################imputation multiple############
+###examinons la corrélation intraclasse afin de décider de prendre en compte les différents niveaux de données
+
+###Fully conditional specification (FCS) (Van Buuren et al., 2006; Van Buuren, 2007a) imputes multivariate missing data on a variable-by-variable basis. The method requires a specification of an imputation model for each incomplete variable, and creates imputations per variable in an iterative fashion.
+
+# avec 0 itterations
+
+imp1 <- mice(nebi_r, maxit=0)
+
+##specification the set of predictors to be used for each incomplete variable
+# Extract predictorMatrix and methods of imputation 
+##the ability to specify the set of predictors to be used for each incomplete variable
+predM = imp1$predictorMatrix
+head(predM)
+predM
+
+predM[ ,"site"] <- 0
+
+predM[ ,"id"] <- 0
+
+predM[ ,"time"] <- 0
+
+predM[ ,"smoking"] <- 0
+
+predM[c("height", "weight"), "bmi"] <- 0
+
+predM
+
+meth = imp1$method
+meth
+
+
+meth["bmi"]<- "~ I(weight/(height^2))" 
+
+meth
+
+
+
+
+
+###Royston (2004) observed that the length of the confidence interval also depends on ν, and thus on m (cf. Equation 2.30). He suggested to base the criterion for m on the confidence coefficient tνpT , and proposed that the coefficient of variation of ln(tνpT ) should be smaller than 0.05. This effectively constrains the range of uncertainty about the confidence interval to roughly within 10%. This rule requires m to be \at least 20 and possibly more."
+
+##Graham et al. (2007) investigated the effect of m on the statistical power of a test for detecting a small effect size (<0.1). Their advice is to set m high in applications where high statistical power is needed. For example, for γ0 = 0:3 and m = 5 the statistical power obtained is 73.1% instead of the theoretical value of 78.4%. We need m = 20 to increase the power to 78.2%. In order to have an attained power within 1% of the theoretical power, then for fractions of missing information γ = (0.1, 0.3, 0.5, 0.7, 0.9) we need to set m = (20, 20, 40, 100, >100), respectively
+
+##Bodner (2008) explored the variability of three quantities under various m: the width of the 95% confidence interval, the p-value, and λ, the proportion of variance attributable to the missing data. Bodner selected m such that the width of the 95% confidence interval is within 10% of its true value 95% of the time. For λ = (0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9), he recommends m = (3, 6, 12, 24, 59, 114, 258), respectively. Since the true λ is unknown, Bodner suggested the proportion of complete cases as a conservative estimate of λ.
+
+##Theoretically it is always better to use higher m, but this involves more computation and storage. Setting m high may not be worth the extra wait. Imputing a dataset in practice often involves trial and error to adapt and refine the imputation model. Such initial explorations do not require large m. It is convenient to set m = 5 during model building, and increase m only after being satisfied with the model for the \final" round of imputation.
+
+
+###In practice, a low number of iterations appears to be enough. Brand (1999) and (Van Buuren et al., 1999) set the number of iterations T quite low, usually somewhere between 5 to 20 iterations. 
+imp2 <- mice(nebi_r, m=20, maxit = 20, 
+             predictorMatrix = predM, 
+             method = meth, print =  FALSE, seed=123)
+ 
+plot(imp2)
+imp2
+
+summary(imp2)
+
+attributes(imp2)
+
+imp2$seed
+
+
+
+##Diagnostic
+
+###Evaluation de la convergence de la procédure d'imputation
+
+imp2$chainMean
+
+plot(imp2)##on voit que la variance entre les chaines d'imputation est presque pareil à la variance au sein des chaines et s'entremellent très bien, ce qui indique une bonne convergence.
+
+###Diagnostique de l'imputation pour comparer les données observées et celles imputées
+##Kernel density estimates for the marginal distributions of the observed data (blue) and the m = 5 densities per variable calculated from the imputed data (thin red lines).
+
+
+
+impL <- complete(imp2,"long",include = T)
+
+impL
+
+impL$Imputed <- factor(impL$.imp >0,labels = c("Observée","Imputée"))
+
+ggplot(impL, aes(x = sitsbp, colour = Imputed)) + geom_density()
+
+ggplot(impL, aes(x = sitdbp, colour = Imputed)) + geom_density()
+
+ggplot(impL, aes(x = height, colour = Imputed)) + geom_density()
+
+ggplot(impL, aes(x = bmi, colour = Imputed)) + geom_density()
+
+ggplot(impL, aes(x = bmi_cat, colour = Imputed)) + geom_density()
+
+
+stripplot(imp2)
+
+
+stripplot(imp2, height~.imp, pch=20, cex=2)
+
+stripplot(imp2, bmi~.imp, pch=20, cex=2)
+
+stripplot(imp2, bmi_cat~.imp, pch=20, cex=2)
+
+stripplot(imp2, sitsbp~.imp, pch=20, cex=2)
+
+stripplot(imp2, sitdbp~.imp, pch=20, cex=2)
+
+
+```
+
+
+```{r}
+
+##Analyse bi-varié données imputées PAS
+##chargeons le package lme4
+library(lmerTest)
+
+library(lme4)
+##analyse bivarié avec seuil de significativité à 0.20 pour PAS
+
+##age catégorie plus de 45 ans et moins de 45
+msb_1_imp <- with(imp2,lme4::lmer(sitsbp ~ age_cat +(1 | id) + (1|time), REML= TRUE))
+
+summary(pool(msb_1_imp))##significatif
+
+
+##bmi_cat
+
+msb_2_imp <- with(imp2,lme4::lmer(sitsbp ~ bmi_cat +(1 | id) + (1|time), REML= TRUE))
+
+summary(pool(msb_2_imp))##non significatif
+
+##gender
+
+msb_3_imp <-  with(imp2,lme4::lmer(sitsbp ~ gender +(1 | id) + (1|time),  REML= TRUE))
+
+summary(pool(msb_3_imp))##significatif
+
+
+##smoking
+msb_4_imp <- with(imp2,lme4::lmer(sitsbp ~ smoking +(1 | id) + (1|time), REML= TRUE))
+
+summary(pool(msb_4_imp))## significatif
+```
+
+```{r}
+##Analyse bi-varié données imputées PAD  
+##chargeons le package lme4
+library(lme4)
+
+library(lmerTest)
+
+##analyse bivarié avec seuil de significance à 0.30
+
+##age catégorie plus de 45 ans et moins de 45
+msb_1d_imp <- with(imp2, lme4::lmer(sitdbp ~ age_cat +(1 | id) + (1|time), REML= TRUE))
+
+summary(pool(msb_1d_imp))##non significatif
+
+##bmi_cat
+
+msb_2d_imp <- with(imp2, lme4::lmer(sitdbp ~ bmi_cat +(1 | id) + (1|time), REML= TRUE))
+
+summary(pool(msb_2d_imp))##non significatif
+
+##gender
+
+msb_3d_imp <- with(imp2, lme4::lmer(sitdbp ~ gender +(1 | id) + (1|time), nebi, REML= TRUE))
+
+summary(pool(msb_3d_imp))##non significatif
+
+
+##smoking
+msb_4d_imp <- with(imp2, lme4::lmer(sitdbp ~ smoking +(1 | id) + (1|time), nebi, REML= TRUE))
+
+summary(pool(msb_4d_imp))##non significatif
+
+```
+
+
+
+```{r}
+
+#############Modelisation avec données imputées
+#########Modélisation de la PA Systolique avec imputation######
+msbp_imp <- with(imp2, lme4::lmer(sitsbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat+ gender*bmi_cat +  (1 | id) + (1|time), REML= TRUE))
+
+
+summary(pool(msbp_imp), conf.int = TRUE,conf.level = 0.95)
+
+cAIC(mps)
+cAIC(mpd)
+###résultat du modèle sans imputation est presque identique au résultat avec imputation. Donc les données manquantes n'impacteraient pas significativement les résultats de notre modèle sans imputation.
+
+
+#########Modélisation de la PA Diastolique avec imputation######
+mdbp_imp <- with(imp2,lme4::lmer(sitdbp ~ age_cat + gender + bmi_cat + age_cat * gender + age_cat * bmi_cat + gender * bmi_cat +  +  (1 | id) + (1|time), REML= TRUE))
+
+summary(pool(mdbp_imp), conf.int = TRUE,conf.level = 0.95)
+
+summary(mpd)
+performance::model_performance(mpd)
+
+###résultat du modèle avec imputation est un peu différent du résultat avec imputation.
+
+##l'interraction genre * surpoids n'est plus significative  et l'obésité n'est plus significativement associé à l'évolution de la PA
+```
+
+
+
+
+
+
