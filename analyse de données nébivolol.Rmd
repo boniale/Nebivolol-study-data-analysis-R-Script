@@ -7,12 +7,12 @@ output: word_document
 
 ```{r}
 #################SELECTION DU WORKING DIRECTORY################
-setwd("C:/Users/lenovo/Desktop/2020 PRESONNAL PROJECTS/Pr. ODJJI/Nevibilol study")
+setwd("...../Nevibilol study")
 
 
 #############Chargement de la base de données en format court########
 
-nebi_c1 <- read.csv2("C:/Users/lenovo/Desktop/2020 PRESONNAL PROJECTS/Pr. ODJJI/Nevibilol study/nebi.csv")
+nebi_c1 <- read.csv2("...../Nevibilol study/nebi.csv")
 
 head(nebi_c1)
 
@@ -1052,16 +1052,6 @@ emmip(mps, bmi_cat  ~ age_cat)
 
 emmeans(mps, pairwise ~ bmi_cat : age_cat)
 
-#####Interpretation:
-
-##l'âge et l'indice de masse corporelle sont des facteurs liés à l'évolution de la pression artérielle systolique (PAS) mais il existe une interraction significative entre leur effet sur la PAS. Le genre n'est pas associé à la PAS.
-##l'âge: Toute chose égale par ailleurs,la différence moyenne de la pression artérielle d'un sujet agé de plus de 45 ans  sous nébivolol est de 7 mmHg +/- 3 plus élevé  par rapport à un sujet de moins de 45 ans au cours d'un suivie de 2 mois. 
-
-##Toute chose égale par ailleurs,la différence moyenne de la pression artérielle systolique d'un sujet obèses sous nébivolol est de 14 mmHg +/- 4 plus élevé qu'un sujet avec un imc normal 
-##le modèle en général a un pouvoir explicatif de 54% c'est à dire qu'il explque en globale 54% de ce qui se passe dans les données réels de la PAS dont seulement 10% pour les effets fixes. Cela veut dire que le modèle peut prédire 54% des données de la PAS avec précision. 
-
-### le Coefficient de Corrélation Intra-classe (CCI) ou Intraclass correlation (ICC) en anglais: C'est la part de variance d'une observation due à une variabilité entre les sujets dans les résultats réels. Ses valeurs sont communément comprises entre 0 et 1. Ici on a 0.49. Ce qui veut dire ces données explique 49% de la variabilité entre les sujets c'est à dire l’accord entre plusieurs évaluateurs sur la mesure de la PAS. Si cette valeur est proche de 1, elle indique qu'il y a une grande similutude entre les mesures de PAS des sujets du même groupe. 
-
 
 ###vérification des hypothèses:
 
@@ -1125,15 +1115,6 @@ confint(mpd)
 
 performance::model_performance(mpd)
 
-
-#####Interpretation:
-##Contrairement à la PAS, le genre est le seul facteur liés à l'évolution de la pression artérielle diastolique (PAS) mais il existe une interraction significative entre son effet sur la PAS et l'age de plus de 45ans.
-
-##le genre: Toute chose égale par ailleurs,la différence moyenne de la PAD d'une femme sous nébivolol est de 6 mmHg +/- 3 plus élevé par rapport à un homme au cours d'un suivi de 2 mois.
-
-##le modèle en général a un pouvoir explicatif de 54% c'est à dire qu'il explque en globale 54% de la variance de la PAS dont seulement 10% pour les effets fixes.
-
-### le Coefficient de Corrélation Intra-classe (CCI) ou Intraclass correlation (ICC) en anglais: C'est la part de variance d'une observation due à une variabilité entre les sujets dans les résultats réels. Ses valeurs sont communément comprises entre 0 et 1. Ici on a 0.53. Ce qui veut dire ces données explique 53% de la variabilité entre les sujets c'est à dire l’accord entre plusieurs évaluateurs sur la mesure de la PAD. Si cette valeur est proche de 1, elle indique qu'il y a une grande similutude entre les mesures de PAD des sujets du même groupe. 
 
 ##Root Mean Square Error (RMSE) 
 
